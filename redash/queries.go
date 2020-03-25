@@ -3,6 +3,7 @@ package redash
 import (
 	"encoding/json"
 	"io/ioutil"
+	"net/url"
 	"strconv"
 )
 
@@ -99,6 +100,7 @@ type GetMyQueriesInput struct {
 
 type GetMyQueriesOutput struct {
 	Body       string
+	Count      int `json:"count"`
 	StatusCode int
 }
 
@@ -128,7 +130,15 @@ func (c *Client) GetMyQueries(input *GetMyQueriesInput) *GetMyQueriesOutput {
 	defer resp.Body.Close()
 
 	b, _ := ioutil.ReadAll(resp.Body)
-	return &GetMyQueriesOutput{Body: string(b), StatusCode: resp.StatusCode}
+
+	var output GetMyQueriesOutput
+	if err := json.Unmarshal(b, &output); err != nil {
+		return &GetMyQueriesOutput{Body: `{"error":"` + err.Error() + `"}`, StatusCode: resp.StatusCode}
+	}
+	output.StatusCode = resp.StatusCode
+	output.Body = string(b)
+
+	return &output
 }
 
 type GetQueryTagsInput struct {
