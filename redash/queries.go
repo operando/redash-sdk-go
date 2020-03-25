@@ -92,6 +92,9 @@ func (c *Client) GetQueryRecent(_ *GetQueryRecentInput) *GetQueryRecentOutput {
 }
 
 type GetMyQueriesInput struct {
+	Order    string
+	Page     int
+	PageSize int
 }
 
 type GetMyQueriesOutput struct {
@@ -99,8 +102,24 @@ type GetMyQueriesOutput struct {
 	StatusCode int
 }
 
-func (c *Client) GetMyQueries(_ *GetMyQueriesInput) *GetMyQueriesOutput {
+func (c *Client) GetMyQueries(input *GetMyQueriesInput) *GetMyQueriesOutput {
 	path := "/api/queries/my"
+
+	if input != nil {
+		values := url.Values{}
+		if input.Page != 0 {
+			values.Add("page", strconv.Itoa(input.Page))
+		}
+		if input.PageSize != 0 {
+			values.Add("page_size", strconv.Itoa(input.PageSize))
+		}
+		if input.Order != "" {
+			values.Add("order", input.Order)
+		}
+		if len(values) > 0 {
+			path = path + "?" + values.Encode()
+		}
+	}
 
 	resp, err := c.get(path)
 	if err != nil {
